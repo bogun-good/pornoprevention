@@ -1,0 +1,269 @@
+=<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>성교육 퀴즈</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <!-- Progress Bar with Rabbit -->
+    <div class="mb-4">
+      <div class="flex justify-between mb-2">
+        <span>문제 진행</span>
+        <span id="progress-text">1/10</span>
+      </div>
+      <div class="relative h-4 bg-gray-200 rounded-full">
+        <div id="progress-bar" class="absolute h-full bg-green-500 rounded-full" style="width: 10%"></div>
+        <div id="rabbit" class="absolute w-8 h-8 text-3xl" style="left: 0%; top: -12px;">🐰</div>
+      </div>
+    </div>
+
+    <!-- Question and Options -->
+    <div id="question" class="text-lg font-semibold mb-4"></div>
+    <div id="options" class="space-y-2"></div>
+    <textarea id="text-answer" class="w-full p-2 border rounded mt-4 hidden" placeholder="답변을 입력하세요"></textarea>
+    <div id="feedback" class="mt-4 text-center font-medium"></div>
+    <button id="next-btn" class="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 hidden">다음</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "성 상품화란 무엇을 의미하나요?",
+        options: [
+          "A. 사람의 감정을 상품처럼 파는 것",
+          "B. 인간의 성을 상품처럼 이용하여 돈을 버는 것",
+          "C. 친구를 많이 사귀는 것",
+          "D. 운동을 열심히 하는 것"
+        ],
+        answer: "B",
+        type: "multiple"
+      },
+      {
+        question: "성 상품화의 대상은 주로 누구인가요?",
+        options: [
+          "A. 어린이만",
+          "B. 남성만",
+          "C. 여성만",
+          "D. 여성뿐만 아니라 남성도 대상이 된다"
+        ],
+        answer: "D",
+        type: "multiple"
+      },
+      {
+        question: "음란물이 위험한 이유로 올바르지 않은 것은 무엇인가요?",
+        options: [
+          "A. 현실과 다른 내용을 왜곡해서 보여준다",
+          "B. 더 자극적인 것을 원하게 만든다",
+          "C. 공부에 도움이 된다",
+          "D. 잘못된 성 지식을 전달할 수 있다"
+        ],
+        answer: "C",
+        type: "multiple"
+      },
+      {
+        question: "음란물을 자주 보면 어떤 문제가 생길 수 있나요?",
+        options: [
+          "A. 운동 능력이 좋아진다",
+          "B. 성적인 자극에 무감각해진다",
+          "C. 성 표현물을 일반적인 것으로 착각하게 된다",
+          "D. 친구와 더 친해진다"
+        ],
+        answer: "C",
+        type: "multiple"
+      },
+      {
+        question: "대중 매체에 나오는 왜곡된 성 표현물은 우리에게 어떤 영향을 줄 수 있나요?",
+        options: [
+          "A. 정확한 성 지식을 알려준다",
+          "B. 사람을 성적인 대상으로만 보게 할 수 있다",
+          "C. 예절을 잘 가르쳐 준다",
+          "D. 다이어트를 건강하게 하게 만든다"
+        ],
+        answer: "B",
+        type: "multiple"
+      },
+      {
+        question: "음란물을 접했을 때 적절한 대처 방법은 무엇인가요?",
+        options: [
+          "A. 친구와 함께 본다",
+          "B. 혼자 계속 본다",
+          "C. 어른이나 선생님께 말하고 도움을 요청한다",
+          "D. 아무에게도 말하지 않고 숨긴다"
+        ],
+        answer: "C",
+        type: "multiple"
+      },
+      {
+        question: "성 표현물이 자극적으로 보이게 만드는 목적은 무엇인가요?",
+        options: [
+          "A. 건강을 위해",
+          "B. 웃음을 주기 위해",
+          "C. 판매나 조회수를 늘려 돈을 벌기 위해",
+          "D. 교육을 위해"
+        ],
+        answer: "C",
+        type: "multiple"
+      },
+      {
+        question: "아래 중 음란물에 해당할 수 있는 것은 무엇인가요?",
+        options: [
+          "A. 자연 다큐멘터리",
+          "B. 친구들과의 운동 사진",
+          "C. 성기와 성행위만을 강조한 영상",
+          "D. 동물 구조 뉴스"
+        ],
+        answer: "C",
+        type: "multiple"
+      },
+      {
+        question: "성 상품화가 왜 문제라고 생각하나요?",
+        type: "text"
+      },
+      {
+        question: "왜곡된 성 표현물이나 음란물이 계속 만들어지고 소비되면 우리 사회에 어떤 문제가 생길 수 있을까요?",
+        type: "text"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let userAnswers = [];
+
+    const question9CorrectWords = [
+      "사람", "물건", "성적으로", "잘못된", "생각", "소중함", "무시", "돈", "이용",
+      "남자", "여자", "외모", "평가", "이상한", "행동", "어린이", "청소년", "나쁜",
+      "영향", "광고", "영상", "자극적", "이미지", "익숙", "중요", "자존감"
+    ];
+    const question10CorrectWords = [
+      "사람", "성적인", "눈", "나쁜", "행동", "잘못된", "지식", "진짜", "관계",
+      "문제", "외모", "중요", "다이어트", "성형", "집착", "음란물", "상처", "존중",
+      "위험한", "자극적", "이상한", "내용", "당연", "착각", "성폭력", "범죄"
+    ];
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const textAnswerEl = document.getElementById("text-answer");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("next-btn");
+    const progressBar = document.getElementById("progress-bar");
+    const rabbit = document.getElementById("rabbit");
+    const progressText = document.getElementById("progress-text");
+
+    function evaluateTextAnswer(questionIndex, userAnswer) {
+      const answer = userAnswer.toLowerCase().trim();
+      const correctWords = questionIndex === 8 ? question9CorrectWords : question10CorrectWords;
+      return correctWords.some(word => answer.includes(word));
+    }
+
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${q.question}`;
+      progressText.textContent = `${currentQuestion + 1}/10`;
+      progressBar.style.width = `${(currentQuestion + 1) * 10}%`;
+      rabbit.style.left = `${currentQuestion * 10}%`;
+
+      optionsEl.innerHTML = "";
+      textAnswerEl.classList.add("hidden");
+      textAnswerEl.value = ""; // Clear textarea for new question
+      textAnswerEl.disabled = false; // Enable textarea
+      nextBtn.classList.add("hidden");
+      feedbackEl.textContent = "";
+
+      if (q.type === "multiple") {
+        q.options.forEach((option, index) => {
+          const btn = document.createElement("button");
+          btn.className = "w-full p-2 border rounded text-left hover:bg-gray-100";
+          btn.textContent = option;
+          btn.onclick = () => checkAnswer(option.charAt(0));
+          optionsEl.appendChild(btn);
+        });
+      } else {
+        textAnswerEl.classList.remove("hidden"); // Show textarea for text questions
+        textAnswerEl.focus(); // Focus the textarea for immediate input
+        console.log(`Textarea for question ${currentQuestion + 1} - Visible: ${!textAnswerEl.classList.contains("hidden")}, Disabled: ${textAnswerEl.disabled}`);
+        const submitBtn = document.createElement("button");
+        submitBtn.className = "w-full p-2 bg-green-500 text-white rounded mt-2 hover:bg-green-600";
+        submitBtn.textContent = "제출";
+        submitBtn.onclick = submitTextAnswer;
+        optionsEl.appendChild(submitBtn);
+      }
+    }
+
+    function checkAnswer(selected) {
+      const q = questions[currentQuestion];
+      userAnswers[currentQuestion] = selected;
+      if (selected === q.answer) {
+        feedbackEl.textContent = "정답이다!";
+        feedbackEl.className = "mt-4 text-center font-medium text-green-600";
+        correctAnswers++;
+      } else {
+        feedbackEl.textContent = "오답입니다.";
+        feedbackEl.className = "mt-4 text-center font-medium text-red-600";
+        incorrectAnswers++;
+      }
+      nextBtn.classList.remove("hidden");
+      disableOptions();
+    }
+
+    function submitTextAnswer() {
+      const userAnswer = textAnswerEl.value;
+      userAnswers[currentQuestion] = userAnswer;
+      if (evaluateTextAnswer(currentQuestion, userAnswer)) {
+        feedbackEl.textContent = "정답이다!";
+        feedbackEl.className = "mt-4 text-center font-medium text-green-600";
+        correctAnswers++;
+      } else {
+        feedbackEl.textContent = "오답입니다.";
+        feedbackEl.className = "mt-4 text-center font-medium text-red-600";
+        incorrectAnswers++;
+      }
+      nextBtn.classList.remove("hidden");
+      textAnswerEl.disabled = true;
+      optionsEl.querySelector("button").disabled = true;
+    }
+
+    function disableOptions() {
+      optionsEl.querySelectorAll("button").forEach(btn => btn.disabled = true);
+    }
+
+    function showResults() {
+      const container = document.getElementById("quiz-container");
+      container.innerHTML = `
+        <h2 class="text-2xl font-bold mb-4">모두 풀었습니다. 성공!</h2>
+        <p class="mb-2">정답 개수: ${correctAnswers}</p>
+        <p class="mb-4">오답 개수: ${incorrectAnswers}</p>
+        <h3 class="text-xl font-semibold mb-2">문제와 답변</h3>
+        <div class="space-y-4">
+          ${questions.map((q, i) => `
+            <div>
+              <p class="font-medium">${i + 1}. ${q.question}</p>
+              ${q.type === "multiple" ? `
+                <p>정답: ${q.answer}</p>
+                <p>당신의 답변: ${userAnswers[i] || "없음"}</p>
+              ` : `
+                <p>결과: ${evaluateTextAnswer(i, userAnswers[i]) ? "정답" : "오답"}</p>
+                <p>당신의 답변: ${userAnswers[i] || "없음"}</p>
+              `}
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    nextBtn.onclick = () => {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    };
+
+    loadQuestion();
+  </script>
+</body>
+</html>
