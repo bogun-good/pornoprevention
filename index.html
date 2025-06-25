@@ -5,17 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>성교육 퀴즈</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* TailwindCSS는 #ecf50을 직접 클래스로 지원하지 않으므로, 사용자 정의 색상을 정의합니다. */
+    .bg-answer-button {
+      background-color: #eaf8b4; /* #ecf50은 유효한 16진수 색상 코드가 아니므로 #ffec50 (노란색 계열)으로 수정합니다. */
+    }
+    .hover\:bg-answer-button-dark:hover {
+      background-color: #f4f4f3; /* 호버 시 약간 더 어두운 색상 */
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
-  <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md my-8">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
     <div class="mb-4">
       <div class="flex justify-between mb-2">
         <span>문제 진행</span>
         <span id="progress-text">1/10</span>
       </div>
-      <div class="relative h-4 bg-gray-200 rounded-full">
-        <div id="progress-bar" class="absolute h-full bg-green-500 rounded-full" style="width: 10%"></div>
-        <div id="rabbit" class="absolute w-8 h-8 text-3xl" style="left: 0%; top: -12px;">🐰</div>
+      <div class="relative h-4 bg-gray-300 rounded-full">
+        <div id="progress-fill" class="absolute h-full bg-green-500 rounded-full" style="width: 0%;"></div>
+        <div id="rabbit" class="absolute w-10 h-10 text-4xl" style="left: 0%; top: -16px;">🐰</div>
       </div>
     </div>
 
@@ -134,12 +143,12 @@
     const question9CorrectWords = [
       "사람", "물건", "성적으로", "잘못된", "생각", "소중함", "무시", "돈", "이용",
       "남자", "여자", "외모", "평가", "이상한", "행동", "어린이", "청소년", "나쁜",
-      "영향", "광고", "영상", "자극적", "이미지", "익숙", "중요", "자존감"
+      "영향", "광고", "영상", "자극적", "이미지", "익숙", "중요", "자존감", "인권" // '인권' 추가
     ];
     const question10CorrectWords = [
       "사람", "성적인", "눈", "나쁜", "행동", "잘못된", "지식", "진짜", "관계",
       "문제", "외모", "중요", "다이어트", "성형", "집착", "음란물", "상처", "존중",
-      "위험한", "자극적", "이상한", "내용", "당연", "착각", "성폭력", "범죄"
+      "위험한", "자극적", "이상한", "내용", "당연", "착각", "성폭력", "범죄", "왜곡", "편견" // '왜곡', '편견' 추가
     ];
 
     const questionEl = document.getElementById("question");
@@ -147,42 +156,52 @@
     const textAnswerEl = document.getElementById("text-answer");
     const feedbackEl = document.getElementById("feedback");
     const nextBtn = document.getElementById("next-btn");
-    const progressBar = document.getElementById("progress-bar");
     const rabbit = document.getElementById("rabbit");
     const progressText = document.getElementById("progress-text");
+    const quizContainer = document.getElementById("quiz-container");
+    const progressFill = document.getElementById("progress-fill"); // 새로 추가된 진행 채우기 요소
 
     function evaluateTextAnswer(questionIndex, userAnswer) {
+      if (!userAnswer) return false; // userAnswer가 null 또는 undefined인 경우 처리
       const answer = userAnswer.toLowerCase().trim();
       const correctWords = questionIndex === 8 ? question9CorrectWords : question10CorrectWords;
       return correctWords.some(word => answer.includes(word));
     }
 
+    function updateProgressBar() {
+      const progressPercentage = (currentQuestion / questions.length) * 100;
+      rabbit.style.left = `${progressPercentage}%`;
+      progressFill.style.width = `${progressPercentage}%`;
+    }
+
     function loadQuestion() {
       const q = questions[currentQuestion];
       questionEl.textContent = `${currentQuestion + 1}. ${q.question}`;
-      progressText.textContent = `${currentQuestion + 1}/10`;
-      progressBar.style.width = `${(currentQuestion + 1) * 10}%`;
-      rabbit.style.left = `${currentQuestion * 10}%`;
+      progressText.textContent = `${currentQuestion + 1}/${questions.length}`;
+      updateProgressBar(); // 막대 및 토끼 위치 업데이트
 
       optionsEl.innerHTML = "";
+      textAnswerEl.value = ""; // textarea 내용 초기화
       textAnswerEl.classList.add("hidden");
-      textAnswerEl.value = ""; // Clear textarea for new question
-      textAnswerEl.disabled = false; // Enable textarea
-      nextBtn.classList.add("hidden");
+      textAnswerEl.disabled = false; // textarea 활성화
+      nextBtn.classList.add("hidden"); // '다음' 버튼 숨기기 (답변 전까지)
       feedbackEl.textContent = "";
+
+      // 퀴즈 진행 중일 때는 quizContainer.bg-white로 배경색을 흰색으로 유지
+      quizContainer.classList.remove("bg-[#b3ccf4]"); // 혹시 모를 이전 클래스 제거
+      quizContainer.classList.add("bg-white");
 
       if (q.type === "multiple") {
         q.options.forEach((option, index) => {
           const btn = document.createElement("button");
-          btn.className = "w-full p-2 border rounded text-left hover:bg-gray-100";
+          btn.className = "w-full p-2 border rounded text-left bg-answer-button hover:bg-answer-button-dark";
           btn.textContent = option;
           btn.onclick = () => checkAnswer(option.charAt(0));
           optionsEl.appendChild(btn);
         });
-      } else {
-        textAnswerEl.classList.remove("hidden"); // Show textarea for text questions
-        textAnswerEl.focus(); // Focus the textarea for immediate input
-        console.log(`Textarea for question ${currentQuestion + 1} - Visible: ${!textAnswerEl.classList.contains("hidden")}, Disabled: ${textAnswerEl.disabled}`);
+      } else { // 텍스트 질문
+        textAnswerEl.classList.remove("hidden"); // 텍스트 질문일 때 textarea 보이기
+        textAnswerEl.focus(); // 즉시 입력을 위해 textarea에 포커스
         const submitBtn = document.createElement("button");
         submitBtn.className = "w-full p-2 bg-green-500 text-white rounded mt-2 hover:bg-green-600";
         submitBtn.textContent = "제출";
@@ -195,7 +214,7 @@
       const q = questions[currentQuestion];
       userAnswers[currentQuestion] = selected;
       if (selected === q.answer) {
-        feedbackEl.textContent = "정답입니다!";
+        feedbackEl.textContent = "정답이다!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
@@ -203,7 +222,7 @@
         feedbackEl.className = "mt-4 text-center font-medium text-red-600";
         incorrectAnswers++;
       }
-      nextBtn.classList.remove("hidden");
+      nextBtn.classList.remove("hidden"); // 답변 후 '다음' 버튼 보이기
       disableOptions();
     }
 
@@ -211,7 +230,7 @@
       const userAnswer = textAnswerEl.value;
       userAnswers[currentQuestion] = userAnswer;
       if (evaluateTextAnswer(currentQuestion, userAnswer)) {
-        feedbackEl.textContent = "정답입니다!";
+        feedbackEl.textContent = "정답이다!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
@@ -219,8 +238,9 @@
         feedbackEl.className = "mt-4 text-center font-medium text-red-600";
         incorrectAnswers++;
       }
-      nextBtn.classList.remove("hidden");
+      nextBtn.classList.remove("hidden"); // 답변 후 '다음' 버튼 보이기
       textAnswerEl.disabled = true;
+      // 텍스트 답변 제출 버튼도 비활성화
       optionsEl.querySelector("button").disabled = true;
     }
 
@@ -230,30 +250,34 @@
 
     function showResults() {
       const container = document.getElementById("quiz-container");
+      // 결과 화면에서는 quiz-container의 배경색을 흰색으로 유지
+      container.classList.remove("bg-[#b3ccf4]");
+      container.classList.add("bg-white");
+
+      // 퀴즈 완료 시 진행 막대를 100% 채움
+      progressFill.style.width = '100%';
+      rabbit.style.left = '100%';
+
       container.innerHTML = `
         <h2 class="text-2xl font-bold mb-4">모두 풀었습니다. 성공!</h2>
-        <p class="mb-2 text-lg">정답 개수: <span class="font-bold text-green-600">${correctAnswers}</span></p>
-        <p class="mb-4 text-lg">오답 개수: <span class="font-bold text-red-600">${incorrectAnswers}</span></p>
+        <p class="mb-2">정답 개수: ${correctAnswers}</p>
+        <p class="mb-4">오답 개수: ${incorrectAnswers}</p>
         <h3 class="text-xl font-semibold mb-2">문제와 답변</h3>
         <div class="space-y-4">
           ${questions.map((q, i) => `
-            <div class="p-3 border rounded bg-gray-50">
-              <p class="font-medium mb-1">${i + 1}. ${q.question}</p>
+            <div>
+              <p class="font-bold">${i + 1}. ${q.question}</p>
               ${q.type === "multiple" ? `
-                <p class="text-sm text-gray-700"><strong>정답:</strong> ${q.answer}</p>
-                <p class="text-sm text-gray-700"><strong>당신의 답변:</strong> ${userAnswers[i] || "없음"}</p>
-                <p class="text-sm ${userAnswers[i] === q.answer ? 'text-green-600' : 'text-red-600'}"><strong>결과:</strong> ${userAnswers[i] === q.answer ? '정답' : '오답'}</p>
+                <p class="font-bold">정답: ${q.answer}</p>
+                <p class="font-bold">당신의 답변: ${userAnswers[i] || "없음"}</p>
               ` : `
-                <p class="text-sm text-gray-700"><strong>당신의 답변:</strong> ${userAnswers[i] || "없음"}</p>
-                <p class="text-sm ${evaluateTextAnswer(i, userAnswers[i]) ? 'text-green-600' : 'text-red-600'}"><strong>결과:</strong> ${evaluateTextAnswer(i, userAnswers[i]) ? "정답" : "오답"}</p>
+                <p class="font-bold">결과: ${evaluateTextAnswer(i, userAnswers[i]) ? "정답" : "오답"}</p>
+                <p class="font-bold">당신의 답변: ${userAnswers[i] || "없음"}</p>
               `}
             </div>
           `).join("")}
         </div>
       `;
-      // Ensure the container itself can expand and doesn't get cut off
-      container.classList.remove("max-w-md"); // Remove fixed max-width for results to allow expansion
-      container.classList.add("max-w-2xl"); // Set a new, wider max-width for better readability of results
     }
 
     nextBtn.onclick = () => {
