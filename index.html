@@ -1,4 +1,4 @@
-=<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -6,9 +6,8 @@
   <title>성교육 퀴즈</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-    <!-- Progress Bar with Rabbit -->
+<body class="bg-gray-100 flex flex-col items-center justify-start min-h-screen p-4">
+  <div id="quiz-container" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md my-8">
     <div class="mb-4">
       <div class="flex justify-between mb-2">
         <span>문제 진행</span>
@@ -20,7 +19,6 @@
       </div>
     </div>
 
-    <!-- Question and Options -->
     <div id="question" class="text-lg font-semibold mb-4"></div>
     <div id="options" class="space-y-2"></div>
     <textarea id="text-answer" class="w-full p-2 border rounded mt-4 hidden" placeholder="답변을 입력하세요"></textarea>
@@ -197,7 +195,7 @@
       const q = questions[currentQuestion];
       userAnswers[currentQuestion] = selected;
       if (selected === q.answer) {
-        feedbackEl.textContent = "정답이다!";
+        feedbackEl.textContent = "정답입니다!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
@@ -213,7 +211,7 @@
       const userAnswer = textAnswerEl.value;
       userAnswers[currentQuestion] = userAnswer;
       if (evaluateTextAnswer(currentQuestion, userAnswer)) {
-        feedbackEl.textContent = "정답이다!";
+        feedbackEl.textContent = "정답입니다!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
@@ -234,24 +232,28 @@
       const container = document.getElementById("quiz-container");
       container.innerHTML = `
         <h2 class="text-2xl font-bold mb-4">모두 풀었습니다. 성공!</h2>
-        <p class="mb-2">정답 개수: ${correctAnswers}</p>
-        <p class="mb-4">오답 개수: ${incorrectAnswers}</p>
+        <p class="mb-2 text-lg">정답 개수: <span class="font-bold text-green-600">${correctAnswers}</span></p>
+        <p class="mb-4 text-lg">오답 개수: <span class="font-bold text-red-600">${incorrectAnswers}</span></p>
         <h3 class="text-xl font-semibold mb-2">문제와 답변</h3>
         <div class="space-y-4">
           ${questions.map((q, i) => `
-            <div>
-              <p class="font-medium">${i + 1}. ${q.question}</p>
+            <div class="p-3 border rounded bg-gray-50">
+              <p class="font-medium mb-1">${i + 1}. ${q.question}</p>
               ${q.type === "multiple" ? `
-                <p>정답: ${q.answer}</p>
-                <p>당신의 답변: ${userAnswers[i] || "없음"}</p>
+                <p class="text-sm text-gray-700"><strong>정답:</strong> ${q.answer}</p>
+                <p class="text-sm text-gray-700"><strong>당신의 답변:</strong> ${userAnswers[i] || "없음"}</p>
+                <p class="text-sm ${userAnswers[i] === q.answer ? 'text-green-600' : 'text-red-600'}"><strong>결과:</strong> ${userAnswers[i] === q.answer ? '정답' : '오답'}</p>
               ` : `
-                <p>결과: ${evaluateTextAnswer(i, userAnswers[i]) ? "정답" : "오답"}</p>
-                <p>당신의 답변: ${userAnswers[i] || "없음"}</p>
+                <p class="text-sm text-gray-700"><strong>당신의 답변:</strong> ${userAnswers[i] || "없음"}</p>
+                <p class="text-sm ${evaluateTextAnswer(i, userAnswers[i]) ? 'text-green-600' : 'text-red-600'}"><strong>결과:</strong> ${evaluateTextAnswer(i, userAnswers[i]) ? "정답" : "오답"}</p>
               `}
             </div>
           `).join("")}
         </div>
       `;
+      // Ensure the container itself can expand and doesn't get cut off
+      container.classList.remove("max-w-md"); // Remove fixed max-width for results to allow expansion
+      container.classList.add("max-w-2xl"); // Set a new, wider max-width for better readability of results
     }
 
     nextBtn.onclick = () => {
