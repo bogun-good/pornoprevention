@@ -230,7 +230,7 @@
       const userAnswer = textAnswerEl.value;
       userAnswers[currentQuestion] = userAnswer;
       if (evaluateTextAnswer(currentQuestion, userAnswer)) {
-        feedbackEl.textContent = "정답이다!";
+        feedbackEl.textContent = "정답!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
