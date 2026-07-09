@@ -214,7 +214,7 @@
       const q = questions[currentQuestion];
       userAnswers[currentQuestion] = selected;
       if (selected === q.answer) {
-        feedbackEl.textContent = "정답이다!";
+        feedbackEl.textContent = "정답!";
         feedbackEl.className = "mt-4 text-center font-medium text-green-600";
         correctAnswers++;
       } else {
